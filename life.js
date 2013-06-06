@@ -1,7 +1,7 @@
 (function() {
 
 angular.module("life", [])
-  .directive("game", function factory(){
+  .directive("game", ['$timeout', function($timeout){
     return {
       restrict: "E",
       replace: true,
@@ -20,39 +20,43 @@ angular.module("life", [])
         "</div>",
       link: function(){},
       controller: function($scope){
-        var seed_matrix, stopped=false;
+        var map_matrix, seed_matrix, stopped=true, size=10;
 
-        seed_matrix = function(size){
-          var matrix = [];
+        map_matrix = function(matrix, callback){
           for(var row=0; row<size; row++){
             var current_line = [];
-            for(var i=0; i<size; i++){
-              current_line[i] = {is_active: false};
+            for(var column=0; column<size; column++){
+              current_line[column] = callback(current_line[column]);
             }
             matrix[row] = current_line;
           }
           return matrix;
         };
 
+        seed_matrix = function(){
+          return map_matrix([], function(){ return {is_active: Math.random()*10 > 5}; });
+        };
+
         $scope.cell_clicked = function(cell){
           cell.is_active = !cell.is_active;
-        }
+        };
 
         $scope.start = function(forced){
           if(forced){ stopped = false; }
-          if(!stopped){
-            setTimeout(function(){ $scope.start() }, 100);
-          }
+          if(stopped){ return; }
+
+          $scope.matrix = seed_matrix();
+          $timeout(function(){ $scope.start() }, 1000);
         };
 
         $scope.stop = function(){
           stopped = true;
-        }
+        };
 
-        $scope.matrix = seed_matrix(10);
+        $scope.matrix = seed_matrix();
         $scope.start();
       }
-    }
-  });
+    };
+  }]);
 
 }).call(this);
