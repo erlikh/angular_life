@@ -1,0 +1,10 @@
+.cell {
+  display: block;
+  height: 50px;
+  width: 50px;
+  border: 1px solid gray;
+}
+
+.cell.active{
+  background-color: deepskyblue;
+}
