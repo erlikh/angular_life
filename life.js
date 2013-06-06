@@ -20,13 +20,13 @@ angular.module("life", [])
         "</div>",
       link: function(){},
       controller: function($scope){
-        var map_matrix, seed_matrix, stopped=true, size=10;
+        var map_matrix, seed_matrix, stopped=true, size=10; //TODO: Remove size variable.
 
         map_matrix = function(matrix, callback){
           for(var row=0; row<size; row++){
-            var current_line = [];
+            var current_line = matrix[row] || []; //TODO: Remove default value. Used only for seeding.
             for(var column=0; column<size; column++){
-              current_line[column] = callback(current_line[column]);
+              current_line[column] = callback(current_line[column], [row, column]);
             }
             matrix[row] = current_line;
           }
@@ -34,7 +34,7 @@ angular.module("life", [])
         };
 
         seed_matrix = function(){
-          return map_matrix([], function(){ return {is_active: Math.random()*10 > 5}; });
+          return map_matrix([], function(){ return {is_active: false}; });
         };
 
         $scope.cell_clicked = function(cell){
@@ -45,8 +45,10 @@ angular.module("life", [])
           if(forced){ stopped = false; }
           if(stopped){ return; }
 
-          $scope.matrix = seed_matrix();
-          $timeout(function(){ $scope.start() }, 1000);
+          map_matrix($scope.matrix, function(){
+            return {is_active: Math.random()*10 > 5};
+          });
+          $timeout(function(){ $scope.start() }, 1000); //TODO: Make it clean why don't window.timeout re-render the screen.
         };
 
         $scope.stop = function(){
