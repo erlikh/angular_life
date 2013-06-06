@@ -18,6 +18,7 @@ angular.module("life", [])
           "</div>" +
           "<div ng-click='start(true)'>Start</div>" +
           "<div ng-click='stop()'>Stop</div>" +
+          "<div ng-click='reset()'>Reset</div>" +
         "</div>",
       link: function(){},
       controller: function($scope){
@@ -77,6 +78,11 @@ angular.module("life", [])
 
         $scope.cell_clicked = function(cell){
           cell.is_active = !cell.is_active;
+        };
+
+        $scope.reset = function(){
+          stopped = true;
+          $scope.matrix = seed_matrix();
         };
 
         $scope.start = function(forced){
