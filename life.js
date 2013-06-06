@@ -21,7 +21,7 @@ angular.module("life", [])
         "</div>",
       link: function(){},
       controller: function($scope){
-        var stopped=true, size=10; //TODO: Remove size variable.
+        var stopped=true, size=20; //TODO: Remove size variable.
 
         var get_active_neighbors = function(matrix, index){
           var elem_row = index[0],
