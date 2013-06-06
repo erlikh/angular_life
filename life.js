@@ -20,13 +20,39 @@ angular.module("life", [])
         "</div>",
       link: function(){},
       controller: function($scope){
-        var map_matrix, seed_matrix, stopped=true, size=10; //TODO: Remove size variable.
+        var check_element, map_matrix, seed_matrix, stopped=true, size=10; //TODO: Remove size variable.
+
+        var get_active_neighbors = function(matrix, index){
+          var elem_row = index[0],
+              elem_column = index[1],
+              neighbors_count = 0;
+
+          for(var row=elem_row-1; row<=elem_row+1; row++){
+            if(!matrix[row]){ continue; }
+
+            for(var column=elem_column-1; column<=elem_column+1; column++){
+              if(row === elem_column && column === elem_column){ continue; }
+              var neighbor = matrix[row][column];
+              if(!neighbor || !neighbor.is_active){ continue;}
+
+              neighbors_count++
+            }
+          }
+          return neighbors_count;
+        };
+
+        check_element = function(element, index){
+          var is_active = Math.random() * 10 > 5;
+          var active_neighbors_count = get_active_neighbors($scope.matrix, index);
+
+          return {is_active: is_active};
+        };
 
         map_matrix = function(matrix, callback){
           for(var row=0; row<size; row++){
             var current_line = matrix[row] || []; //TODO: Remove default value. Used only for seeding.
             for(var column=0; column<size; column++){
-              current_line[column] = callback(current_line[column], [row, column]);
+              current_line[column] = callback(current_line[column], [row, column], matrix);
             }
             matrix[row] = current_line;
           }
@@ -45,9 +71,10 @@ angular.module("life", [])
           if(forced){ stopped = false; }
           if(stopped){ return; }
 
-          map_matrix($scope.matrix, function(){
-            return {is_active: Math.random()*10 > 5};
-          });
+          var new_matrix = $scope.matrix;
+          map_matrix(new_matrix, check_element);
+
+
           $timeout(function(){ $scope.start() }, 1000); //TODO: Make it clean why don't window.timeout re-render the screen.
         };
 
