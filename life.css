@@ -3,6 +3,7 @@
   height: 50px;
   width: 50px;
   border: 1px solid gray;
+  float: left;
 }
 
 .cell.active {
@@ -10,5 +11,5 @@
 }
 
 .matrix {
-  float: left;
+  width: 520px;
 }
