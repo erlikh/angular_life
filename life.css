@@ -5,6 +5,10 @@
   border: 1px solid gray;
 }
 
-.cell.active{
+.cell.active {
   background-color: deepskyblue;
+}
+
+.matrix {
+  float: left;
 }
