@@ -6,7 +6,7 @@ angular.module("life", [])
       restrict: "E",
       replace: true,
       scope: {
-        size: "@size"
+        size: "="
       },
       template: "" +
         "<div>" +
@@ -20,43 +20,53 @@ angular.module("life", [])
           "<div ng-click='stop()'>Stop</div>" +
           "<div ng-click='reset()'>Reset</div>" +
         "</div>",
-      link: function(){},
       controller: function($scope){
-        var stopped=true, size=20; //TODO: Remove size variable.
+        var seed_matrix;
+        var map_matrix;
+        var check_element;
+        var get_active_neighbors;
+        var stopped=true;
 
-        var get_active_neighbors = function(matrix, index){
-          var elem_row = index[0],
-              elem_column = index[1],
-              neighbors_count = 0;
+        get_active_neighbors = function(matrix, index){
+          var neighbor;
+          var elem_row = index[0];
+          var elem_column = index[1];
+          var neighbors_count = 0;
 
-          for(var row=elem_row-1; row<=elem_row+1; row++){
-            if(!matrix[row]){ continue; }
+          for (var row = elem_row-1; row <= elem_row+1; row++){
+            if(!matrix[row]){
+              continue;
+            }
 
-            for(var column=elem_column-1; column<=elem_column+1; column++){
-              if(row === elem_row && column === elem_column){ continue; }
-              var neighbor = matrix[row][column];
-              if(!neighbor || !neighbor.is_active){ continue;}
-              neighbors_count++
+            for (var column = elem_column - 1; column <= elem_column + 1; column++){
+              if(row === elem_row && column === elem_column){
+                continue;
+              }
+
+              neighbor = matrix[row][column];
+              if(neighbor && neighbor.is_active){
+                neighbors_count++;
+              }
             }
           }
           return neighbors_count;
         };
 
-        var check_element = function(element, index){
+        check_element = function(element, index){
           var is_active = false;
           var active_neighbors_count = get_active_neighbors($scope.matrix, index);
 
           if(element.is_active){
-            if(active_neighbors_count===2 || active_neighbors_count===3){
+            if(active_neighbors_count === 2 || active_neighbors_count === 3){
               is_active = true;
             }
-          } else if(active_neighbors_count === 3) {
+          } else if(active_neighbors_count === 3){
             is_active = true;
           }
           return {is_active: is_active};
         };
 
-        var map_matrix = function(matrix, callback){
+        map_matrix = function(matrix, callback){
           var new_matrix = matrix.map(function(vector, row){
             return vector.map(function(element, column){
               return callback(element, [row, column], matrix);
@@ -65,15 +75,17 @@ angular.module("life", [])
           return new_matrix;
         };
 
-        var seed_matrix = function(){
+        seed_matrix = function(size){
           var matrix = [];
-          for(var row=0; row < size; row++){
+          for (var row = 0; row < size; row++){
             matrix[row] = [];
-            for(var column=0; column<size; column++){
+            for (var column = 0; column < size; column++){
               matrix[row][column] = [];
             }
           }
-          return map_matrix(matrix, function(){ return {is_active: false}; });
+          return map_matrix(matrix, function(){
+            return {is_active: false};
+          });
         };
 
         $scope.cell_clicked = function(cell){
@@ -82,7 +94,7 @@ angular.module("life", [])
 
         $scope.reset = function(){
           stopped = true;
-          $scope.matrix = seed_matrix();
+          $scope.matrix = seed_matrix($scope.size);
         };
 
         $scope.start = function(forced){
@@ -90,15 +102,14 @@ angular.module("life", [])
           if(stopped){ return; }
 
           $scope.matrix = map_matrix($scope.matrix, check_element);
-          $timeout(function(){ $scope.start() }, 1000); //TODO: Make it clean why don't window.timeout re-render the screen.
+          $timeout(function(){ $scope.start() }, 1000);
         };
 
         $scope.stop = function(){
           stopped = true;
         };
 
-        $scope.matrix = seed_matrix();
-        $scope.start();
+        $scope.matrix = seed_matrix($scope.size);
       }
     };
   }]);
