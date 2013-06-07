@@ -21,40 +21,46 @@ angular.module("life", [])
           "<div ng-click='reset()'>Reset</div>" +
         "</div>",
       controller: function($scope){
+        var get_submatrix;
         var seed_matrix;
         var map_matrix;
         var check_element;
-        var get_active_neighbors;
+        var count_active_neighbors;
         var stopped=true;
 
-        get_active_neighbors = function(matrix, index){
-          var neighbor;
-          var elem_row = index[0];
-          var elem_column = index[1];
-          var neighbors_count = 0;
-
-          for (var row = elem_row-1; row <= elem_row+1; row++){
+        get_submatrix = function(matrix, rows_range, columns_range){
+          var result = [], element
+          for (var row = rows_range[0]; row <= rows_range[1]; row++){
             if(!matrix[row]){
               continue;
             }
-
-            for (var column = elem_column - 1; column <= elem_column + 1; column++){
-              if(row === elem_row && column === elem_column){
+            for (var column = columns_range[0]; column <= columns_range[1]; column++){
+              element = matrix[row][column];
+              if(!element){
                 continue;
               }
-
-              neighbor = matrix[row][column];
-              if(neighbor && neighbor.is_active){
-                neighbors_count++;
-              }
+              result.push([element, [row, column]]);
             }
           }
-          return neighbors_count;
+          return result;
+        };
+
+        count_active_neighbors = function(matrix, index){
+          var row = index[0];
+          var column = index[1];
+          var neighbors = get_submatrix(matrix, [row-1, row+1], [column-1, column+1]);
+
+          return neighbors.reduce(function(count, neighbor){
+            if(neighbor[0].is_active && !(neighbor[1][0] == row && neighbor[1][1] == column)){
+              count++
+            }
+            return count;
+          }, 0);
         };
 
         check_element = function(element, index){
           var is_active = false;
-          var active_neighbors_count = get_active_neighbors($scope.matrix, index);
+          var active_neighbors_count = count_active_neighbors($scope.matrix, index);
 
           if(element.is_active){
             if(active_neighbors_count === 2 || active_neighbors_count === 3){
@@ -76,16 +82,14 @@ angular.module("life", [])
         };
 
         seed_matrix = function(size){
-          var matrix = [];
-          for (var row = 0; row < size; row++){
+          var matrix = [], row, column;
+          for (row = 0; row < size; row++){
             matrix[row] = [];
-            for (var column = 0; column < size; column++){
-              matrix[row][column] = [];
+            for (column = 0; column < size; column++){
+              matrix[row][column] = {is_active: false}
             }
           }
-          return map_matrix(matrix, function(){
-            return {is_active: false};
-          });
+          return matrix;
         };
 
         $scope.cell_clicked = function(cell){
