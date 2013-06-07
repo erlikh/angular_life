@@ -1,7 +1,48 @@
 (function() {
 
 angular.module("life", [])
-  .directive("game", ['$timeout', function($timeout){
+  .service("TwoDMatrix", function(){
+    var sub = function(matrix, rows_range, columns_range){
+      var result = [], element;
+      for (var row = rows_range[0]; row <= rows_range[1]; row++){
+        if(!matrix[row]){ continue; }
+
+        for (var column = columns_range[0]; column <= columns_range[1]; column++){
+          element = matrix[row][column];
+          if(!element){ continue; }
+
+          result.push([element, [row, column]]);
+        }
+      }
+      return result;
+    };
+
+    var map = function(matrix, callback){
+      return matrix.map(function(vector, row){
+        return vector.map(function(element, column){
+          return callback(element, [row, column], matrix);
+        });
+      });
+    };
+
+    var seed = function(size){
+      var matrix = [], row, column;
+      for (row = 0; row < size; row++){
+        matrix[row] = [];
+        for (column = 0; column < size; column++){
+          matrix[row][column] = {};
+        }
+      }
+      return matrix;
+    };
+
+    return {
+      sub:  sub,
+      map:  map,
+      seed: seed
+    }
+  })
+  .directive("game", ['$timeout', 'TwoDMatrix', function($timeout, TwoDMatrix){
     return {
       restrict: "E",
       replace: true,
@@ -21,34 +62,14 @@ angular.module("life", [])
           "<div ng-click='reset()'>Reset</div>" +
         "</div>",
       controller: function($scope){
-        var get_submatrix;
-        var seed_matrix;
-        var map_matrix;
         var check_element;
         var count_active_neighbors;
         var stopped=true;
 
-        get_submatrix = function(matrix, rows_range, columns_range){
-          var result = [], element
-          for (var row = rows_range[0]; row <= rows_range[1]; row++){
-            if(!matrix[row]){
-              continue;
-            }
-            for (var column = columns_range[0]; column <= columns_range[1]; column++){
-              element = matrix[row][column];
-              if(!element){
-                continue;
-              }
-              result.push([element, [row, column]]);
-            }
-          }
-          return result;
-        };
-
         count_active_neighbors = function(matrix, index){
           var row = index[0];
           var column = index[1];
-          var neighbors = get_submatrix(matrix, [row-1, row+1], [column-1, column+1]);
+          var neighbors = TwoDMatrix.sub(matrix, [row-1, row+1], [column-1, column+1]);
 
           return neighbors.reduce(function(count, neighbor){
             if(neighbor[0].is_active && !(neighbor[1][0] == row && neighbor[1][1] == column)){
@@ -72,40 +93,20 @@ angular.module("life", [])
           return {is_active: is_active};
         };
 
-        map_matrix = function(matrix, callback){
-          var new_matrix = matrix.map(function(vector, row){
-            return vector.map(function(element, column){
-              return callback(element, [row, column], matrix);
-            });
-          });
-          return new_matrix;
-        };
-
-        seed_matrix = function(size){
-          var matrix = [], row, column;
-          for (row = 0; row < size; row++){
-            matrix[row] = [];
-            for (column = 0; column < size; column++){
-              matrix[row][column] = {is_active: false}
-            }
-          }
-          return matrix;
-        };
-
         $scope.cell_clicked = function(cell){
           cell.is_active = !cell.is_active;
         };
 
         $scope.reset = function(){
           stopped = true;
-          $scope.matrix = seed_matrix($scope.size);
+          $scope.matrix = TwoDMatrix.seed($scope.size);
         };
 
         $scope.start = function(forced){
           if(forced){ stopped = false; }
           if(stopped){ return; }
 
-          $scope.matrix = map_matrix($scope.matrix, check_element);
+          $scope.matrix = TwoDMatrix.map($scope.matrix, check_element);
           $timeout(function(){ $scope.start() }, 1000);
         };
 
@@ -113,7 +114,7 @@ angular.module("life", [])
           stopped = true;
         };
 
-        $scope.matrix = seed_matrix($scope.size);
+        $scope.matrix = TwoDMatrix.seed($scope.size);
       }
     };
   }]);
