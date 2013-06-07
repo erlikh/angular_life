@@ -1,5 +1,3 @@
-(function() {
-
 angular.module("life", [])
   .service("TwoDMatrix", function(){
     return {
@@ -115,4 +113,3 @@ angular.module("life", [])
     };
   }]);
 
-}).call(this);
