@@ -88,6 +88,7 @@ angular.module("life", [])
         };
 
         $scope.cell_clicked = function(cell){
+          stopped = true;
           cell.is_active = !cell.is_active;
         };
 
