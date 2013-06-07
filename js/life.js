@@ -56,8 +56,8 @@ angular.module("life", [])
           "<div ng-click='reset()'>Reset</div>" +
         "</div>",
       controller: function($scope){
-        var check_element
-          , count_active_neighbors
+        var count_active_neighbors
+          , make_judgment
           , stopped=true;
 
         count_active_neighbors = function(matrix, index){
@@ -73,7 +73,7 @@ angular.module("life", [])
           }, 0);
         };
 
-        check_element = function(element, index){
+        make_judgment = function(element, index){
           var is_active = false
             , active_neighbors_count = count_active_neighbors($scope.matrix, index);
 
@@ -100,7 +100,7 @@ angular.module("life", [])
           if(forced){ stopped = false; }
           if(stopped){ return; }
 
-          $scope.matrix = TwoDMatrix.map($scope.matrix, check_element);
+          $scope.matrix = TwoDMatrix.map($scope.matrix, make_judgment);
           $timeout(function(){ $scope.start() }, 1000);
         };
 
