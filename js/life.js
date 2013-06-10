@@ -83,7 +83,8 @@ angular.module("life", [])
           "</div>" +
           "<div ng-click='start(true)'>Start</div>" +
           "<div ng-click='stop()'>Stop</div>" +
-          "<div ng-click='reset()'>Reset</div>" +
+          "<div ng-click='randomize()'>Randomize</div>" +
+          "<div ng-click='clear()'>Clear</div>" +
         "</div>",
       controller: function($scope){
         var make_judgment
@@ -105,9 +106,13 @@ angular.module("life", [])
           cell.is_active = !cell.is_active;
         };
 
-        $scope.reset = function(){
+        $scope.clear = function(){
           is_stopped = true;
           $scope.matrix = Playfield.seed($scope.size, {is_active: false});
+        };
+
+        $scope.randomize = function(){
+          $scope.matrix = Playfield.seed($scope.size, {is_active: seeder});
         };
 
         $scope.start = function(forced){
@@ -122,7 +127,7 @@ angular.module("life", [])
           is_stopped = true;
         };
 
-        $scope.matrix = Playfield.seed($scope.size, {is_active: seeder});
+        $scope.randomize();
       }
     };
   }]);
