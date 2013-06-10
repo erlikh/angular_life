@@ -1,19 +1,14 @@
 angular.module("life", [])
-  .service("TwoDMatrix", function(){
+  .service("PlayField", function(){
     return {
-      sub: function(matrix, index){
-        var result = [], row, column;
-        for (row = index[0]-1; row <= index[0]+1; row++){
-          if(!matrix[row]){ continue; }
-
-          for (column = index[1]-1; column <= index[1]+1; column++){
-            if(row === index[0] && column === index[1]) { continue; }
-            if(!matrix[row][column]){ continue; }
-
-            result.push([row, column]);
+      count_active_neighbors: function(neighbors, matrix){
+        return neighbors.reduce(function(count, neighbor_index){
+          var element = matrix[neighbor_index[0]][neighbor_index[1]];
+          if(element.is_active){
+            count++
           }
-        }
-        return result;
+          return count;
+        }, 0);
       },
 
       map: function(matrix, callback){
@@ -33,6 +28,21 @@ angular.module("life", [])
           }
         }
         return matrix;
+      },
+
+      sub: function(matrix, index){
+        var result = [], row, column;
+        for (row = index[0]-1; row <= index[0]+1; row++){
+          if(!matrix[row]){ continue; }
+
+          for (column = index[1]-1; column <= index[1]+1; column++){
+            if(row === index[0] && column === index[1]) { continue; }
+            if(!matrix[row][column]){ continue; }
+
+            result.push([row, column]);
+          }
+        }
+        return result;
       }
     };
   })
@@ -42,7 +52,7 @@ angular.module("life", [])
       false: [false, false, false, true]
     };
   })
-  .directive("game", ['$timeout', 'TwoDMatrix', "Judge", function($timeout, TwoDMatrix, Judge){
+  .directive("game", ["$timeout", "Judge", "PlayField", function($timeout, Judge, Playfield){
     return {
       restrict: "E",
       replace: true,
@@ -62,51 +72,40 @@ angular.module("life", [])
           "<div ng-click='reset()'>Reset</div>" +
         "</div>",
       controller: function($scope){
-        var count_active_neighbors
-          , make_judgment
-          , stopped=true;
-
-        count_active_neighbors = function(neighbors, matrix){
-          return neighbors.reduce(function(count, neighbor_index){
-            var element = matrix[neighbor_index[0]][neighbor_index[1]];
-            if(element.is_active){
-              count++
-            }
-            return count;
-          }, 0);
-        };
+        var make_judgment
+          , is_stopped=true;
 
         make_judgment = function(element, index, matrix){
-          var neighbors = element.neighbors || TwoDMatrix.sub(matrix, index);
-          var active_neighbors_count = count_active_neighbors(neighbors, matrix);
+          var neighbors = element.neighbors || Playfield.sub(matrix, index);
+          var active_neighbors_count = Playfield.count_active_neighbors(neighbors, matrix);
           var is_active = Judge[!!element.is_active][active_neighbors_count];
 
           return {is_active: is_active, neighbors: neighbors};
         };
 
         $scope.cell_clicked = function(cell){
-          stopped = true;
+          is_stopped = true;
           cell.is_active = !cell.is_active;
         };
 
         $scope.reset = function(){
-          stopped = true;
-          $scope.matrix = TwoDMatrix.seed($scope.size);
+          is_stopped = true;
+          $scope.matrix = Playfield.seed($scope.size);
         };
 
         $scope.start = function(forced){
-          if(forced){ stopped = false; }
-          if(stopped){ return; }
+          if(forced){ is_stopped = false; }
+          if(is_stopped){ return; }
 
-          $scope.matrix = TwoDMatrix.map($scope.matrix, make_judgment);
-          $timeout(function(){ $scope.start() }, 1000);
+          $scope.matrix = Playfield.map($scope.matrix, make_judgment);
+          $timeout(function(){ $scope.start(); }, 1000);
         };
 
         $scope.stop = function(){
-          stopped = true;
+          is_stopped = true;
         };
 
-        $scope.matrix = TwoDMatrix.seed($scope.size);
+        $scope.matrix = Playfield.seed($scope.size);
       }
     };
   }]);
