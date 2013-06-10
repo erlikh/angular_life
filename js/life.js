@@ -66,7 +66,14 @@ angular.module("life", [])
       false: [false, false, false, true]
     };
   })
-  .directive("game", ["$timeout", "Judge", "PlayField", function($timeout, Judge, Playfield){
+  .service("Seeder", function(){
+    return {
+      get: function(){
+        return Math.random()*10 > 8;
+      }
+    };
+  })
+  .directive("game", ["$timeout", "Judge", "PlayField", "Seeder", function($timeout, Judge, PlayField, Seeder){
     return {
       restrict: "E",
       replace: true,
@@ -88,18 +95,15 @@ angular.module("life", [])
         "</div>",
       controller: function($scope){
         var make_judgment
-          , is_stopped=true
-          , seeder;
+          , is_stopped=true;
 
         make_judgment = function(element, index, matrix){
-          var neighbors = element.neighbors || Playfield.get_neighbors(matrix, index);
-          var active_count = Playfield.count_active(matrix,neighbors);
+          var neighbors = element.neighbors || PlayField.get_neighbors(matrix, index);
+          var active_count = PlayField.count_active(matrix,neighbors);
           var is_active = !!Judge[element.is_active][active_count];
 
           return {is_active: is_active, neighbors: neighbors};
         };
-
-        seeder = function(){ return Math.random()*10 > 8; };
 
         $scope.cell_clicked = function(cell){
           is_stopped = true;
@@ -108,18 +112,18 @@ angular.module("life", [])
 
         $scope.clear = function(){
           is_stopped = true;
-          $scope.matrix = Playfield.seed($scope.size, {is_active: false});
+          $scope.matrix = PlayField.seed($scope.size, {is_active: false});
         };
 
         $scope.randomize = function(){
-          $scope.matrix = Playfield.seed($scope.size, {is_active: seeder});
+          $scope.matrix = PlayField.seed($scope.size, {is_active: Seeder.get});
         };
 
         $scope.start = function(forced){
-          if(forced){ is_stopped = false; }
-          if(is_stopped){ return; }
+          if(is_stopped && !forced){ return; }
 
-          $scope.matrix = Playfield.map($scope.matrix, make_judgment);
+          is_stopped = false;
+          $scope.matrix = PlayField.map($scope.matrix, make_judgment);
           $timeout(function(){ $scope.start(); }, 1000);
         };
 
