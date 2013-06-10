@@ -36,7 +36,13 @@ angular.module("life", [])
       }
     };
   })
-  .directive("game", ['$timeout', 'TwoDMatrix', function($timeout, TwoDMatrix){
+  .service("Judge", function(){
+    return {
+      true:  [false, false, true,  true],
+      false: [false, false, false, true]
+    };
+  })
+  .directive("game", ['$timeout', 'TwoDMatrix', "Judge", function($timeout, TwoDMatrix, Judge){
     return {
       restrict: "E",
       replace: true,
@@ -74,16 +80,9 @@ angular.module("life", [])
         };
 
         make_judgment = function(element, index){
-          var is_active = false
-            , active_neighbors_count = count_active_neighbors($scope.matrix, index);
+          var active_neighbors_count = count_active_neighbors($scope.matrix, index);
+          var is_active = Judge[!!element.is_active][active_neighbors_count];
 
-          if(element.is_active){
-            if(active_neighbors_count === 2 || active_neighbors_count === 3){
-              is_active = true;
-            }
-          } else if(active_neighbors_count === 3){
-            is_active = true;
-          }
           return {is_active: is_active};
         };
 
