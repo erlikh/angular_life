@@ -1,14 +1,14 @@
 angular.module("life", [])
   .service("TwoDMatrix", function(){
     return {
-      sub: function(matrix, rows_range, columns_range){
-        var result = [], element, row, column;
-        for (row = rows_range[0]; row <= rows_range[1]; row++){
+      sub: function(matrix, index){
+        var result = [], row, column;
+        for (row = index[0]-1; row <= index[0]+1; row++){
           if(!matrix[row]){ continue; }
 
-          for (column = columns_range[0]; column <= columns_range[1]; column++){
-            element = matrix[row][column];
-            if(!element){ continue; }
+          for (column = index[1]-1; column <= index[1]+1; column++){
+            if(row === index[0] && column === index[1]) { continue; }
+            if(!matrix[row][column]){ continue; }
 
             result.push([row, column]);
           }
@@ -66,24 +66,19 @@ angular.module("life", [])
           , make_judgment
           , stopped=true;
 
-        count_active_neighbors = function(neighbors, elem_index, matrix){
+        count_active_neighbors = function(neighbors, matrix){
           return neighbors.reduce(function(count, neighbor_index){
             var element = matrix[neighbor_index[0]][neighbor_index[1]];
-            if(element.is_active && !(neighbor_index[0] == elem_index[0] && neighbor_index[1] == elem_index[1])){
+            if(element.is_active){
               count++
             }
             return count;
           }, 0);
         };
 
-        var get_neighbors = function(matrix, index){
-          var row = index[0], column = index[1]
-          return TwoDMatrix.sub(matrix, [row-1, row+1], [column-1, column+1]);
-        };
-
         make_judgment = function(element, index, matrix){
-          var neighbors = element.neighbors || get_neighbors(matrix, index);
-          var active_neighbors_count = count_active_neighbors(neighbors, index, matrix);
+          var neighbors = element.neighbors || TwoDMatrix.sub(matrix, index);
+          var active_neighbors_count = count_active_neighbors(neighbors, matrix);
           var is_active = Judge[!!element.is_active][active_neighbors_count];
 
           return {is_active: is_active, neighbors: neighbors};
