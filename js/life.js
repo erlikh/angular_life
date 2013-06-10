@@ -10,7 +10,7 @@ angular.module("life", [])
             element = matrix[row][column];
             if(!element){ continue; }
 
-            result.push([element, [row, column]]);
+            result.push([row, column]);
           }
         }
         return result;
@@ -66,24 +66,27 @@ angular.module("life", [])
           , make_judgment
           , stopped=true;
 
-        count_active_neighbors = function(matrix, index){
-          var row = index[0]
-            , column = index[1]
-            , neighbors = TwoDMatrix.sub(matrix, [row-1, row+1], [column-1, column+1]);
-
-          return neighbors.reduce(function(count, neighbor){
-            if(neighbor[0].is_active && !(neighbor[1][0] == row && neighbor[1][1] == column)){
+        count_active_neighbors = function(neighbors, elem_index, matrix){
+          return neighbors.reduce(function(count, neighbor_index){
+            var element = matrix[neighbor_index[0]][neighbor_index[1]];
+            if(element.is_active && !(neighbor_index[0] == elem_index[0] && neighbor_index[1] == elem_index[1])){
               count++
             }
             return count;
           }, 0);
         };
 
-        make_judgment = function(element, index){
-          var active_neighbors_count = count_active_neighbors($scope.matrix, index);
+        var get_neighbors = function(matrix, index){
+          var row = index[0], column = index[1]
+          return TwoDMatrix.sub(matrix, [row-1, row+1], [column-1, column+1]);
+        };
+
+        make_judgment = function(element, index, matrix){
+          var neighbors = element.neighbors || get_neighbors(matrix, index);
+          var active_neighbors_count = count_active_neighbors(neighbors, index, matrix);
           var is_active = Judge[!!element.is_active][active_neighbors_count];
 
-          return {is_active: is_active};
+          return {is_active: is_active, neighbors: neighbors};
         };
 
         $scope.cell_clicked = function(cell){
