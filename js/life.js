@@ -78,6 +78,7 @@ angular.module("life", [])
       restrict: "E",
       replace: true,
       scope: {
+        delay: "=",
         size: "="
       },
       template: "" +
@@ -124,7 +125,7 @@ angular.module("life", [])
 
           is_stopped = false;
           $scope.matrix = PlayField.map($scope.matrix, make_judgment);
-          $timeout(function(){ $scope.start(); }, 1000);
+          $timeout(function(){ $scope.start(); }, $scope.delay);
         };
 
         $scope.stop = function(){
